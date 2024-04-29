@@ -1,0 +1,59 @@
+﻿@inject IContactService ContactService
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="First name"
+                                  @bind-Value="model.FirstName" For="@(() => model.FirstName)" />
+                    <MudTextField Label="Last name" Class="mt-3"
+                                  @bind-Value="model.LastName" For="@(() => model.LastName)" />
+                    <MudTextField Label="Email" Class="mt-3"
+                                  @bind-Value="model.Email" For="@(() => model.Email)" />
+                    <MudTextField Label="Phone" Class="mt-3"
+                                  @bind-Value="model.Phone" For="@(() => model.Phone)" />
+                    <MudTextField Label="Company" Class="mt-3"
+                                  @bind-Value="model.Company" For="@(() => model.Company)" />
+                    <MudTextField Label="Address" Class="mt-3"
+                                  @bind-Value="model.Address" For="@(() => model.Address)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudButton OnClick="Cancel" Class="mx-1">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                               Color="Color.Primary">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public Contact model { get; set; }
+
+    override protected async Task OnParametersSetAsync()
+    {
+        if(model is null)
+        {
+            model = new Contact();
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(model.Id == 0 && model is not null)
+        {
+            await ContactService.AddContactItemAsync(model);
+        }
+        else if(model?.Id != 0 && model is not null)
+        {
+            await ContactService.UpdateContactItemAsync(model, model.Id);
+        }
+        MudDialog.Close(DialogResult.Ok(model));
+    }
+}
