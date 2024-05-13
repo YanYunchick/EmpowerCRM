@@ -104,21 +104,21 @@ else
     private bool striped = false;
     private bool bordered = false;
     private string searchString1 = "";
-    private int[] pageSizes = { 5, 10, 2, 100, int.MaxValue };
+    private int[] pageSizes = { 5, 10, 25, 100, int.MaxValue };
     private Contact selectedItem1 = null;
     private HashSet<Contact> selectedItems = new HashSet<Contact>();
     private List<Contact> contactItems = new List<Contact>();
 
     protected override async Task OnInitializedAsync()
     {
-        contactItems = await ContactService.GetAllItemsAsync();
+        contactItems = await ContactService.GetAllContactItemsAsync();
     }
 
     async Task DeleteContactItem(int id)
     {
         selectedItem1 = null;
         await ContactService.DeleteContactItemAsync(id);
-        contactItems = await ContactService.GetAllItemsAsync();
+        contactItems = await ContactService.GetAllContactItemsAsync();
         Snackbar.Add($"The contact has been removed successfully", Severity.Success);
     }
 
@@ -170,7 +170,7 @@ else
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            contactItems = await ContactService.GetAllItemsAsync();
+            contactItems = await ContactService.GetAllContactItemsAsync();
             Snackbar.Add($"New contact has been added successfully", Severity.Success);
             StateHasChanged();
         }
@@ -184,7 +184,7 @@ else
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            contactItems = await ContactService.GetAllItemsAsync();
+            contactItems = await ContactService.GetAllContactItemsAsync();
             Snackbar.Add($"The contact has been updated successfully", Severity.Success);
             StateHasChanged();
         }

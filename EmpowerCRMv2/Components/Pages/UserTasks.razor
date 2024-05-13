@@ -1,0 +1,158 @@
+﻿@page "/tasks/{Id:int?}"
+@rendermode InteractiveServer
+@inject IUserTaskService UserTaskService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+<MudGrid>
+    <MudItem md="3" xs="12">
+        <MudPaper Height="600px" Class="overflow-scroll">
+            <MudStack Row="true" Spacing="0">
+                <MudIcon Icon="@Icons.Material.Filled.Task" Color="Color.Success" Size="Size.Large"></MudIcon>
+                <MudText Typo="Typo.h4">Tasks</MudText>
+                <MudSpacer />
+                <MudButton Color="Color.Primary" OnClick="OpenCreateDialog">Add</MudButton>
+            </MudStack>
+            <MudDivider DividerType="DividerType.FullWidth" Class="my-3" Light />
+            <MudStack Spacing="0" Row="true">
+                <MudText Class="mx-1">Due Date</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Color="Color.Dark" Size="Size.Medium" ></MudIcon>
+            </MudStack>
+            <MudDivider DividerType="DividerType.FullWidth" Class="my-3" Light />
+            <MudStack>
+                @foreach (UserTask task in userTaskItems)
+                {
+                    <MudPaper Square="true" Outlined="true" Class="mx-1 cursor-pointer" @onclick="@(() => OnSelectUserTask(@task))">
+                        <MudText Class="mx-1">@task.Name</MudText>
+                        <MudText Class="mx-2">Subject: @task.Subject</MudText>
+                        <MudText Class="mx-2">Related To: @task.Opportunity.Name</MudText>
+                    </MudPaper>
+                }
+            </MudStack>
+        </MudPaper>
+    </MudItem >
+    <MudItem md="9" xs="12">
+        @if (selectedUserTask is not null)
+        {
+            <MudPaper Class="mb-4 pa-2">
+                <MudStack Row="true" Spacing="0">
+                    <MudIcon Icon="@Icons.Material.Filled.Task" Color="Color.Primary" Size="Size.Medium"></MudIcon>
+                    <MudText Typo="Typo.h6"><b>@selectedUserTask.Name</b></MudText>
+                    <MudSpacer />
+                    <MudButton Color="Color.Error" @onclick="@(() => ConfirmDelete())">Delete</MudButton>
+                    <MudButton Color="Color.Primary" OnClick="OpenEditDialog">Edit</MudButton>
+                </MudStack>
+            </MudPaper>
+
+            <MudPaper >
+                <MudStack Wrap="Wrap.Wrap" Row="true">
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Subject</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.Name</MudText>
+                    </MudPaper>
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Due Date</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.DueDate</MudText>
+                    </MudPaper>
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Priority</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.Priority?.Name</MudText>
+                    </MudPaper>
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Status</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.Status?.Name</MudText>
+                    </MudPaper>
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Related To</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.Opportunity?.Name</MudText>
+                    </MudPaper>
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Assigned To</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.Owner?.UserName</MudText>
+                    </MudPaper>
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Last Modified At</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.LastModifiedDate</MudText>
+                    </MudPaper>
+                    <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
+                        <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Created At</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.CreatedDate</MudText>
+                    </MudPaper>
+
+                    <MudTextField Class="mx-16 my-3" T="string" Lines="5" Variant="Variant.Outlined" 
+                                  Label="Comments" Text="@selectedUserTask.Description" Disabled="true"></MudTextField>
+                </MudStack>
+            </MudPaper>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private List<UserTask> userTaskItems = new List<UserTask>();
+    private UserTask selectedUserTask;
+    protected override async Task OnInitializedAsync()
+    {
+        userTaskItems = await UserTaskService.GetAllUserTaskItemsAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        selectedUserTask = userTaskItems.FirstOrDefault(u => u.Id == Id);
+    }
+
+    private async void OnSelectUserTask(UserTask selectedItem)
+    {
+        selectedUserTask = selectedItem;
+    }
+
+    private async void OpenCreateDialog()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
+
+        var dialog = await DialogService.ShowAsync<EditUserTaskDialog>("Create Task", closeOnEscapeKey);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            userTaskItems = await UserTaskService.GetAllUserTaskItemsAsync();
+            Snackbar.Add($"New task has been added successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    async Task DeleteUserTaskItem()
+    {
+        await UserTaskService.DeleteUserTaskItemAsync(selectedUserTask.Id);
+        Snackbar.Add($"The task has been removed successfully", Severity.Success);
+        selectedUserTask = null;
+        userTaskItems = await UserTaskService.GetAllUserTaskItemsAsync();
+    }
+
+    private async void OpenEditDialog()
+    {
+        var parameters = new DialogParameters { ["model"] = selectedUserTask };
+
+        var dialog = await DialogService.ShowAsync<EditUserTaskDialog>("Edit Task", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            userTaskItems = await UserTaskService.GetAllUserTaskItemsAsync();
+            Snackbar.Add($"The opportunity has been updated successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async void ConfirmDelete()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Deleting can not be undone!",
+            yesText: "Delete", cancelText: "Cancel");
+        bool isConfirmed = result == null ? false : true;
+        if (isConfirmed)
+        {
+            await DeleteUserTaskItem();
+            StateHasChanged();
+        }
+    }
+}

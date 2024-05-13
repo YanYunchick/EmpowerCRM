@@ -11,6 +11,9 @@ namespace EmpowerCRMv2.Data
         public DbSet<OpportunityStage> OpportunityStages { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<OpportunityProduct> OpportunityProducts { get; set; }
+        public DbSet<UserTask> UserTasks { get; set; }
+        public DbSet<UserTaskPriority> UserTaskPriorities { get; set; }
+        public DbSet<UserTaskStatus> UserTaskStatuses { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Add Identity related model configuration

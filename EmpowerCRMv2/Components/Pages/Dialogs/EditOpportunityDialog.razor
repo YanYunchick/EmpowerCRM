@@ -1,0 +1,67 @@
+﻿@inject IOpportunityService OpportunityService
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Name"
+                                  @bind-Value="model.Name" For="@(() => model.Name)" />
+                    <MudTextField Label="Amount" Class="mt-3"
+                                  @bind-Value="model.Amount" For="@(() => model.Amount)" />
+                    <MudSelect T="int?" @bind-Value="model.StageId" Label="Stage" AnchorOrigin="Origin.BottomCenter">
+                        @foreach(OpportunityStage stage in opportunityStages)
+                        {
+                            <MudSelectItem Value="@stage.Id">@stage.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudDatePicker PickerVariant="PickerVariant.Inline" AnchorOrigin="Origin.BottomCenter" Label="Close Date" @bind-Date="@model.CloseDate"
+                                   @bind-Value="model.CloseDate" For="@(() => model.CloseDate)" />
+                    
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudButton OnClick="Cancel" Class="mx-1">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                               Color="Color.Primary">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public Opportunity model { get; set; }
+    List<OpportunityStage> opportunityStages = new List<OpportunityStage>();
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //   opportunityStages = await OpportunityService.GetOpportunityStagesAsync();
+    //}
+
+    override protected async Task OnParametersSetAsync()
+    {
+        if (model is null)
+        {
+            model = new Opportunity();
+        }
+        opportunityStages = await OpportunityService.GetOpportunityStagesAsync();
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async void OnValidSubmit(EditContext context)
+    {
+        if (model.Id == 0 && model is not null)
+        {
+            await OpportunityService.AddOpportunityItemAsync(model, 1);
+        }
+        else if (model?.Id != 0 && model is not null)
+        {
+            await OpportunityService.UpdateOpportunityItemAsync(model, model.Id);
+        }
+        MudDialog.Close(DialogResult.Ok(model));
+    }
+}

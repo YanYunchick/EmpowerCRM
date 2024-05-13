@@ -1,0 +1,241 @@
+﻿@page "/opportunity/{Id:int}"
+@rendermode InteractiveServer
+@inject IOpportunityService OpportunityService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<MudStack Row="true" Spacing="0">
+    <MudIcon Icon="@Icons.Material.Filled.ContactPage" Color="Color.Primary" Size="Size.Large"></MudIcon>
+    <MudText Typo="Typo.h5" Class="pt-1">Opportunity</MudText>
+</MudStack>
+@if (currentOpportunity is not null)
+{
+    <MudCard>
+        <MudCardContent>
+            <MudStack Row="true" Spacing="0">
+                <MudText Heading="h3"><b>@currentOpportunity.Name</b></MudText>
+                <MudSpacer />
+                <MudButton Color="Color.Error" @onclick="@(() => ConfirmDelete())">Delete</MudButton>
+                <MudButton Color="Color.Primary" OnClick="OpenEditDialog">Edit</MudButton>
+            </MudStack>
+            <MudDivider DividerType="DividerType.FullWidth" Class="my-3" Light />
+
+            <MudStack Row="true" Spacing="3">
+                <MudPaper>
+                    <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Amount</MudText>
+                    <MudText Class="mx-3">@currentOpportunity.Amount</MudText>
+                </MudPaper>
+                <MudPaper>
+                    <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Stage</MudText>
+                    <MudText Class="mx-3">@currentOpportunity.Stage.Name</MudText>
+                </MudPaper>
+                <MudPaper>
+                    <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Close Date</MudText>
+                    <MudText Class="mx-3">@currentOpportunity.CloseDate</MudText>
+                </MudPaper>
+                <MudPaper>
+                    <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Last Modified At</MudText>
+                    <MudText Class="mx-3">@currentOpportunity.LastModifiedDate</MudText>
+                </MudPaper>
+                <MudPaper>
+                    <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Created At</MudText>
+                    <MudText Class="mx-3">@currentOpportunity.CreatedDate</MudText>
+                </MudPaper>
+            </MudStack>   
+        </MudCardContent>
+    </MudCard>
+    <MudPaper Class="my-3 py-2">
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined" OverrideStyles="false" Class="d-flex" Style="width:100%;">
+            @foreach(var stage in opportunityStages)
+            {
+                <MudButton @onclick="@(() => ChangeOpportunityStage(@stage.Id))"
+                           Class="flex-1" Color="Color.Primary" Variant="@(currentOpportunity.StageId == stage.Id ? Variant.Filled : Variant.Outlined)">@stage.Name</MudButton>
+            }
+        </MudButtonGroup>
+    </MudPaper>
+}
+else
+{
+    <MudText>Opportunity not found.</MudText>
+}
+@if (currentOpportunity is not null && currentOpportunity.OpportunityProducts is not null)
+{
+    <MudGrid Class="my-4">
+        <MudItem xs="12" md="8">
+            <MudPaper>
+                <MudStack Row="true" Spacing="0">
+                    <MudText Class="ma-1" Typo="Typo.h6">Opportunity Products</MudText>
+                    <MudSpacer />
+                    <MudButton Class="ma-1" Color="Color.Primary" OnClick="OpenAddProductDialog">Add</MudButton>
+                </MudStack>
+                <MudDataGrid Items="@currentOpportunity.OpportunityProducts" Filterable="false" SortMode="@SortMode.None" Groupable="false" 
+                                Virtualize="true" FixedHeader="true" Height="350px">
+                    <Columns>
+                        <PropertyColumn Property="x => x.Product.Name" Title="Name" />
+                        <PropertyColumn Property="x => x.Quantity" Title="Quantity" />
+                        <PropertyColumn Property="x => x.Price" Title="Price" Format="C"/>
+                        <PropertyColumn Property="x => x.Price * x.Quantity" Title="Total" Format="C" />
+                        <TemplateColumn CellClass="d-flex justify-end">
+                            <CellTemplate>
+                                <MudStack Row>
+                                    <MudIconButton OnClick="@(() => DeleteOpportunityProductItem(context.Item))" 
+                                                   Icon="@Icons.Material.Filled.Delete" aria-label="delete">
+                                    </MudIconButton>
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                </MudDataGrid>
+            </MudPaper>
+        </MudItem>
+        <MudItem md="4" xs="12">
+            <MudPaper >
+                <MudStack Row="true" Spacing="0">
+                    <MudIcon Icon="@Icons.Material.Filled.Task" Color="Color.Success" Size="Size.Large"></MudIcon>
+                    <MudText Typo="Typo.h4">Tasks</MudText>
+                    <MudSpacer />
+                    <MudButton Color="Color.Primary" OnClick="OpenCreateUserTaskDialog">Add</MudButton>
+                </MudStack>
+                <MudDivider DividerType="DividerType.FullWidth" Class="my-3" Light />
+                <MudStack Spacing="0" Row="true">
+                    <MudText Class="mx-1">Due Date</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Color="Color.Dark" Size="Size.Medium"></MudIcon>
+                </MudStack>
+                <MudDivider DividerType="DividerType.FullWidth" Class="my-3" Light />
+                <MudPaper Height="300px" Class="overflow-scroll">
+                    <MudStack>
+                        @foreach (UserTask task in currentOpportunity.UserTasks)
+                        {
+                            <MudPaper Square="true" Outlined="true" Class="mx-1">
+                                <MudLink Class="mx-1" Href="@($"/tasks/{task.Id}")">@task.Name</MudLink>
+                                <MudText Class="mx-2">Subject: @task.Subject</MudText>
+                                <MudText Class="mx-2">Due Date: @task.DueDate</MudText>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                </MudPaper>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public Opportunity currentOpportunity { get; set; }
+    public List<OpportunityProduct> oppProducts = new List<OpportunityProduct>();
+    List<OpportunityStage> opportunityStages = new List<OpportunityStage>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
+        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var oppItem = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
+        if (oppItem is not null)
+        {
+            currentOpportunity = oppItem;
+        }
+        opportunityStages = await OpportunityService.GetOpportunityStagesAsync();
+    }
+
+    async Task DeleteOpportunityProductItem(OpportunityProduct oppProduct)
+    {
+        await OpportunityService.DeleteOpportunityProductItemAsync(oppProduct.OpportunityId, oppProduct.ProductId);
+        currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
+    }
+
+    async Task DeleteOpportunityItem()
+    {
+        await OpportunityService.DeleteOpportunityItemAsync(Id);
+        Snackbar.Add($"The opportunity has been removed successfully", Severity.Success);
+        NavigationManager.NavigateTo("opportunities");
+    }
+
+    async Task ChangeOpportunityStage(int stageId)
+    {
+        if (currentOpportunity.StageId != stageId)
+        {
+            currentOpportunity.StageId = stageId;
+            await OpportunityService.UpdateOpportunityItemAsync(currentOpportunity, currentOpportunity.Id);
+            currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
+        }
+
+    }
+
+    private async void OpenAddProductDialog()
+    {
+        var parameters = new DialogParameters { ["CurrentOpportunity"] = currentOpportunity };
+
+        var dialog = await DialogService.ShowAsync<AddOpportunityProductDialog>("Add Product", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
+            Snackbar.Add($"The product has been added successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async void OpenCreateUserTaskDialog()
+    {
+        var parameters = new DialogParameters { ["OpportunityId"] = currentOpportunity.Id };
+
+        var dialog = await DialogService.ShowAsync<EditUserTaskDialog>("Create Task", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
+            Snackbar.Add($"The task has been added successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private string _buttonText = "Closed Won";
+
+    private void SetButtonText(int id)
+    {
+        switch (id)
+        {
+            case 0:
+                _buttonText = "Closed Won";
+                break;
+            case 1:
+                _buttonText = "Closed Lost";
+                break;
+        }
+    }
+
+    private async void OpenEditDialog()
+    {
+        var parameters = new DialogParameters { ["model"] = currentOpportunity };
+
+        var dialog = await DialogService.ShowAsync<EditOpportunityDialog>("Edit Opportunity", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
+            Snackbar.Add($"The opportunity has been updated successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async void ConfirmDelete()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Deleting can not be undone!",
+            yesText: "Delete", cancelText: "Cancel");
+        bool isConfirmed = result == null ? false : true;
+        if(isConfirmed)
+        {
+            await DeleteOpportunityItem();
+            StateHasChanged();
+        }
+    }
+}

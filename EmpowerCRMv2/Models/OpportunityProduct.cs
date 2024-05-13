@@ -1,8 +1,12 @@
-﻿namespace EmpowerCRMv2.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EmpowerCRMv2.Models
 {
     public class OpportunityProduct
     {
+        [Required]
         public decimal Price { get; set; }
+        [Required]
         public int Quantity { get; set; }
         public int OpportunityId { get; set; }
         public Opportunity Opportunity { get; set; }

@@ -4,6 +4,7 @@ using EmpowerCRMv2.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmpowerCRMv2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240510120605_UpdateProductModel")]
+    partial class UpdateProductModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,6 +120,7 @@ namespace EmpowerCRMv2.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("OwnerId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Phone")
@@ -126,7 +130,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Contacts", (string)null);
+                    b.ToTable("Contacts");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.Opportunity", b =>
@@ -157,7 +161,7 @@ namespace EmpowerCRMv2.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int?>("StageId")
+                    b.Property<int>("StageId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -166,7 +170,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasIndex("StageId");
 
-                    b.ToTable("Opportunities", (string)null);
+                    b.ToTable("Opportunities");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.OpportunityProduct", b =>
@@ -207,7 +211,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OpportunityStages", (string)null);
+                    b.ToTable("OpportunityStages");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.Product", b =>
@@ -230,98 +234,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products", (string)null);
-                });
-
-            modelBuilder.Entity("EmpowerCRMv2.Models.UserTask", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("OpportunityId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OwnerId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("PriorityId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OpportunityId");
-
-                    b.HasIndex("OwnerId");
-
-                    b.HasIndex("PriorityId");
-
-                    b.HasIndex("StatusId");
-
-                    b.ToTable("UserTasks", (string)null);
-                });
-
-            modelBuilder.Entity("EmpowerCRMv2.Models.UserTaskPriority", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserTaskPriorities", (string)null);
-                });
-
-            modelBuilder.Entity("EmpowerCRMv2.Models.UserTaskStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserTaskStatuses", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -461,7 +374,9 @@ namespace EmpowerCRMv2.Migrations
                 {
                     b.HasOne("EmpowerCRMv2.Data.ApplicationUser", "Owner")
                         .WithMany()
-                        .HasForeignKey("OwnerId");
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Owner");
                 });
@@ -476,7 +391,9 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasOne("EmpowerCRMv2.Models.OpportunityStage", "Stage")
                         .WithMany("Opportunitites")
-                        .HasForeignKey("StageId");
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Contact");
 
@@ -500,35 +417,6 @@ namespace EmpowerCRMv2.Migrations
                     b.Navigation("Opportunity");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("EmpowerCRMv2.Models.UserTask", b =>
-                {
-                    b.HasOne("EmpowerCRMv2.Models.Opportunity", "Opportunity")
-                        .WithMany()
-                        .HasForeignKey("OpportunityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EmpowerCRMv2.Data.ApplicationUser", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId");
-
-                    b.HasOne("EmpowerCRMv2.Models.UserTaskPriority", "Priority")
-                        .WithMany("UserTasks")
-                        .HasForeignKey("PriorityId");
-
-                    b.HasOne("EmpowerCRMv2.Models.UserTaskStatus", "Status")
-                        .WithMany("UserTasks")
-                        .HasForeignKey("StatusId");
-
-                    b.Navigation("Opportunity");
-
-                    b.Navigation("Owner");
-
-                    b.Navigation("Priority");
-
-                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -600,16 +488,6 @@ namespace EmpowerCRMv2.Migrations
             modelBuilder.Entity("EmpowerCRMv2.Models.Product", b =>
                 {
                     b.Navigation("OpportunityProducts");
-                });
-
-            modelBuilder.Entity("EmpowerCRMv2.Models.UserTaskPriority", b =>
-                {
-                    b.Navigation("UserTasks");
-                });
-
-            modelBuilder.Entity("EmpowerCRMv2.Models.UserTaskStatus", b =>
-                {
-                    b.Navigation("UserTasks");
                 });
 #pragma warning restore 612, 618
         }

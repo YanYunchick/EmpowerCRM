@@ -1,0 +1,191 @@
+﻿@page "/opportunities"
+@rendermode InteractiveServer
+@inject IOpportunityService OpportunityService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+<style>
+    .selected {
+        background-color: #e1e1e6 !important;
+    }
+
+        .selected > td {
+            color: black !important;
+        }
+
+            .selected > td .mud-input {
+                color: black !important;
+            }
+</style>
+
+@if (opportunityItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MudTable T="Opportunity"
+              Items="@opportunityItems"
+              Dense="@dense"
+              Hover="@hover"
+              Bordered="@bordered"
+              Striped="@striped"
+              SortLabel="Sort By"
+              Filter="new Func<Opportunity,bool>(FilterFunc1)"
+              @bind-SelectedItem="selectedItem1"
+              RowClass="cursor-pointer"
+              RowClassFunc="@SelectedRowClassFunc"
+              OnRowClick="@(args => RowClickEvent(args))"
+              @ref="mudTable">
+        <ToolBarContent>
+            <div class="d-block">
+                <MudText Typo="Typo.h6">Opportunities</MudText>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                           @onclick="@(() => DeleteOpportunityItem(@selectedItem1.Id))"
+                           Disabled="@(selectedItem1 is null)">Delete</MudButton>
+                <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Edit" Color="Color.Primary"
+                           OnClick="OpenEditDialog" Disabled="@(selectedItem1 is null)">Edit</MudButton>
+                <AuthorizeView Roles="Administrator">
+                    <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="OpenCreateDialog">New</MudButton>
+                </AuthorizeView>
+            </div>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString1"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<Opportunity, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Opportunity, object>(x=>x.Amount)">Amount</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Opportunity, object>(x=>x.Stage.Name)">Stage</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Opportunity, object>(x=>x.Contact.FirstName + x.Contact.LastName)">Contact</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Opportunity, object>(x=>x.CloseDate)">Close Date</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Opportunity, object>(x=>x.LastModifiedDate)">Modified At</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Opportunity, object>(x=>x.CreatedDate)">Created At</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">
+                <MudLink Href="@($"/opportunity/{context.Id}")">@context.Name</MudLink>
+            </MudTd>
+            <MudTd DataLabel="Amount">$@context.Amount</MudTd>
+            <MudTd DataLabel="Stage">@context.Stage.Name</MudTd>
+            <MudTd DataLabel="Contact">
+                <MudLink Href="@($"/contact/{context.Contact.Id}")">@context.Contact.FirstName @context.Contact.LastName</MudLink>
+            </MudTd>
+            <MudTd DataLabel="CloseDate">@context.CloseDate</MudTd>
+            <MudTd DataLabel="LastModifiedDate">@context.LastModifiedDate</MudTd>
+            <MudTd DataLabel="CreatedAt">@context.CreatedDate</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="@pageSizes" />
+        </PagerContent>
+    </MudTable>
+
+    <div class="d-flex flex-wrap mt-4">
+        <MudSwitch @bind-Checked="@hover" Color="Color.Primary">Hover</MudSwitch>
+        <MudSwitch @bind-Checked="@dense" Color="Color.Secondary">Dense</MudSwitch>
+        <MudSwitch @bind-Checked="@striped" Color="Color.Tertiary">Striped</MudSwitch>
+        <MudSwitch @bind-Checked="@bordered" Color="Color.Warning">Bordered</MudSwitch>
+        <MudSpacer />
+        <div style="min-width:200px;">
+            <MudText Inline="true" Class="align-self-center">Selected1: @selectedItem1?.Name</MudText>
+        </div>
+    </div>
+}
+
+@code {
+    private int selectedRowNumber = -1;
+    private MudTable<Opportunity> mudTable;
+    private bool dense = false;
+    private bool hover = true;
+    private bool striped = false;
+    private bool bordered = false;
+    private string searchString1 = "";
+    private int[] pageSizes = { 5, 10, 25, 100, int.MaxValue };
+    private Opportunity selectedItem1 = null;
+    private HashSet<Opportunity> selectedItems = new HashSet<Opportunity>();
+    private List<Opportunity> opportunityItems = new List<Opportunity>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        opportunityItems = await OpportunityService.GetAllOpportunityItemsAsync();
+    }
+
+    async Task DeleteOpportunityItem(int id)
+    {
+        selectedItem1 = null;
+        await OpportunityService.DeleteOpportunityItemAsync(id);
+        opportunityItems = await OpportunityService.GetAllOpportunityItemsAsync();
+        Snackbar.Add($"The opportunity has been removed successfully", Severity.Success);
+    }
+
+    private bool FilterFunc1(Opportunity opportunity) => FilterFunc(opportunity, searchString1);
+
+    private bool FilterFunc(Opportunity opportunity, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (opportunity.Name!.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private void RowClickEvent(TableRowClickEventArgs<Opportunity> tableRowClickEventArgs)
+    {
+
+    }
+
+    private string SelectedRowClassFunc(Opportunity element, int rowNumber)
+    {
+        if (selectedRowNumber == rowNumber)
+        {
+            selectedRowNumber = -1;
+            selectedItem1 = null;
+            StateHasChanged();
+            return string.Empty;
+        }
+        else if (mudTable.SelectedItem != null && mudTable.SelectedItem.Equals(element))
+        {
+            selectedRowNumber = rowNumber;
+            return "selected";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private async void OpenCreateDialog()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
+
+        var dialog = await DialogService.ShowAsync<EditOpportunityDialog>("Create Opportunity", closeOnEscapeKey);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            opportunityItems = await OpportunityService.GetAllOpportunityItemsAsync();
+            Snackbar.Add($"New opportunity has been added successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async void OpenEditDialog()
+    {
+        var parameters = new DialogParameters { ["model"] = selectedItem1 };
+
+        var dialog = await DialogService.ShowAsync<EditOpportunityDialog>("Edit Opportunity", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            opportunityItems = await OpportunityService.GetAllOpportunityItemsAsync();
+            Snackbar.Add($"The opportunity has been updated successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+}

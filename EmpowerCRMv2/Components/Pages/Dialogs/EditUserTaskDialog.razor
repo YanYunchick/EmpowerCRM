@@ -1,0 +1,101 @@
+﻿@inject IUserTaskService UserTaskService
+@inject IOpportunityService OpportunityService
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard Style="min-width:400px; max-width: 400px">
+                <MudCardContent>
+                    <MudTextField Label="Name"
+                                  @bind-Value="model.Name" For="@(() => model.Name)" />
+                    <MudTextField Label="Subject" Class="mt-3"
+                                  @bind-Value="model.Subject" For="@(() => model.Subject)" />
+                    <MudDatePicker PickerVariant="PickerVariant.Inline" AnchorOrigin="Origin.TopCenter" Label="Close Date" @bind-Date="@model.DueDate"
+                                   @bind-Value="model.DueDate" For="@(() => model.DueDate)" />
+                    <MudSelect T="int?" @bind-Value="model.PriorityId" Label="Priority" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (UserTaskPriority priority in userTaskPriorities)
+                        {
+                            <MudSelectItem T="int?" Value="@priority.Id" >@priority.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect T="int?" @bind-Value="model.StatusId" Label="Status" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (UserTaskStatus status in userTaskStatuses)
+                        {
+                            <MudSelectItem T="int?" Value="@status.Id" >@status.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect T="int" @bind-Value="model.OpportunityId" Disabled="@(OpportunityId is not null)" Label="Opportunity" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (Opportunity opportunity in opportunityItems)
+                        {
+                            <MudSelectItem Value="@opportunity.Id" >@opportunity.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                
+                    <MudTextField Label="Comments" Lines="5"
+                                  @bind-Value="model.Description" For="@(() => model.Description)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudButton OnClick="Cancel" Class="mx-1">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                               Color="Color.Primary" Disabled="@(!opportunityItems.Any())">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public UserTask model { get; set; }
+    [Parameter] public int? OpportunityId { get; set; }
+    List<UserTaskPriority> userTaskPriorities = new List<UserTaskPriority>();
+    List<UserTaskStatus> userTaskStatuses = new List<UserTaskStatus>();
+    private List<Opportunity> opportunityItems = new List<Opportunity>();
+    override protected async Task OnParametersSetAsync()
+    {
+        if (model is null)
+        {
+            model = new UserTask();
+        }
+        userTaskPriorities = await UserTaskService.GetUserTaskPrioritiesAsync();
+        userTaskStatuses = await UserTaskService.GetUserTaskStatusesAsync();
+        opportunityItems = await OpportunityService.GetAllOpportunityItemsAsync();
+        if (userTaskPriorities.Any())
+        {
+            model.PriorityId = userTaskPriorities.FirstOrDefault()!.Id;
+        }
+        if (userTaskStatuses.Any())
+        {
+            model.StatusId = userTaskStatuses.FirstOrDefault()!.Id;
+        }
+        if (opportunityItems.Any())
+        {
+            if (OpportunityId is not null)
+            {
+                model.OpportunityId = (int)OpportunityId;
+            }
+            else
+            {
+                model.OpportunityId = opportunityItems.FirstOrDefault()!.Id;
+            }
+        }
+        StateHasChanged();
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async void OnValidSubmit(EditContext context)
+    {
+        if (model.Id == 0 && model is not null)
+        {
+            await UserTaskService.AddUserTaskItemAsync(model);
+        }
+        else if (model?.Id != 0 && model is not null)
+        {
+            await UserTaskService.UpdateUserTaskItemAsync(model, model.Id);
+        }
+        MudDialog.Close(DialogResult.Ok(model));
+    }
+}

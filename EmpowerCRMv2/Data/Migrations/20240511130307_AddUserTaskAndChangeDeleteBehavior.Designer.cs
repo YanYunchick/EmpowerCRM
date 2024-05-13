@@ -4,6 +4,7 @@ using EmpowerCRMv2.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmpowerCRMv2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240511130307_AddUserTaskAndChangeDeleteBehavior")]
+    partial class AddUserTaskAndChangeDeleteBehavior
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,7 +129,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Contacts", (string)null);
+                    b.ToTable("Contacts");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.Opportunity", b =>
@@ -166,7 +169,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasIndex("StageId");
 
-                    b.ToTable("Opportunities", (string)null);
+                    b.ToTable("Opportunities");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.OpportunityProduct", b =>
@@ -207,7 +210,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OpportunityStages", (string)null);
+                    b.ToTable("OpportunityStages");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.Product", b =>
@@ -230,7 +233,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.UserTask", b =>
@@ -285,7 +288,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasIndex("StatusId");
 
-                    b.ToTable("UserTasks", (string)null);
+                    b.ToTable("UserTask");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.UserTaskPriority", b =>
@@ -303,7 +306,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserTaskPriorities", (string)null);
+                    b.ToTable("UserTaskPriority");
                 });
 
             modelBuilder.Entity("EmpowerCRMv2.Models.UserTaskStatus", b =>
@@ -321,7 +324,7 @@ namespace EmpowerCRMv2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserTaskStatuses", (string)null);
+                    b.ToTable("UserTaskStatus");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
