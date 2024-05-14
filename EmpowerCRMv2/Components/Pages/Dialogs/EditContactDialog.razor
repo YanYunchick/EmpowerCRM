@@ -32,13 +32,20 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
-    [Parameter] public Contact model { get; set; }
-
+    private Contact model = new Contact();
+    [Parameter] public Contact Contact { get; set; }
     override protected async Task OnParametersSetAsync()
     {
-        if(model is null)
+        if(Contact is not null)
         {
-            model = new Contact();
+            model.Address = Contact.Address;
+            model.Company = Contact.Company;
+            model.Phone = Contact.Phone;
+            model.Email = Contact.Email;
+            model.FirstName = Contact.FirstName;
+            model.LastName = Contact.LastName;
+            model.Id = Contact.Id;
+            model.OwnerId = Contact.OwnerId;
         }
     }
 
@@ -46,13 +53,13 @@
 
     private async void OnValidSubmit(EditContext context)
     {
-        if(model.Id == 0 && model is not null)
+        if (model.Id == 0 && model is not null)
         {
             await ContactService.AddContactItemAsync(model);
         }
-        else if(model?.Id != 0 && model is not null)
+        else if (model?.Id != 0 && model is not null)
         {
-            await ContactService.UpdateContactItemAsync(model, model.Id);
+            await ContactService.UpdateContactItemAsync(model);
         }
         MudDialog.Close(DialogResult.Ok(model));
     }

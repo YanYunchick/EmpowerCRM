@@ -47,38 +47,51 @@
 </MudDialog>
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
-    [Parameter] public UserTask model { get; set; }
+    private UserTask model = new UserTask();
+    [Parameter] public UserTask UserTask { get; set; }
     [Parameter] public int? OpportunityId { get; set; }
     List<UserTaskPriority> userTaskPriorities = new List<UserTaskPriority>();
     List<UserTaskStatus> userTaskStatuses = new List<UserTaskStatus>();
     private List<Opportunity> opportunityItems = new List<Opportunity>();
     override protected async Task OnParametersSetAsync()
     {
-        if (model is null)
-        {
-            model = new UserTask();
-        }
         userTaskPriorities = await UserTaskService.GetUserTaskPrioritiesAsync();
         userTaskStatuses = await UserTaskService.GetUserTaskStatusesAsync();
         opportunityItems = await OpportunityService.GetAllOpportunityItemsAsync();
-        if (userTaskPriorities.Any())
+        if (UserTask is not null)
         {
-            model.PriorityId = userTaskPriorities.FirstOrDefault()!.Id;
+            model.Id = UserTask.Id;
+            model.Name = UserTask.Name;
+            model.Subject = UserTask.Subject;
+            model.Description = UserTask.Description;
+            model.DueDate = UserTask.DueDate;
+            model.CreatedDate = UserTask.CreatedDate;
+            model.LastModifiedDate = UserTask.LastModifiedDate;
+            model.StatusId = UserTask.StatusId;
+            model.PriorityId = UserTask.PriorityId;
+            model.OpportunityId = UserTask.OpportunityId;
+            model.OwnerId = UserTask.OwnerId;
         }
-        if (userTaskStatuses.Any())
+        else
         {
-            model.StatusId = userTaskStatuses.FirstOrDefault()!.Id;
-        }
-        if (opportunityItems.Any())
-        {
-            if (OpportunityId is not null)
+            if (userTaskPriorities.Any())
             {
-                model.OpportunityId = (int)OpportunityId;
+                model.PriorityId = userTaskPriorities.FirstOrDefault()!.Id;
             }
-            else
+            if (userTaskStatuses.Any())
             {
-                model.OpportunityId = opportunityItems.FirstOrDefault()!.Id;
+                model.StatusId = userTaskStatuses.FirstOrDefault()!.Id;
+            }
+            if (opportunityItems.Any())
+            {
+                if (OpportunityId is not null)
+                {
+                    model.OpportunityId = (int)OpportunityId;
+                }
+                else
+                {
+                    model.OpportunityId = opportunityItems.FirstOrDefault()!.Id;
+                }
             }
         }
         StateHasChanged();
@@ -94,7 +107,7 @@
         }
         else if (model?.Id != 0 && model is not null)
         {
-            await UserTaskService.UpdateUserTaskItemAsync(model, model.Id);
+            await UserTaskService.UpdateUserTaskItemAsync(model);
         }
         MudDialog.Close(DialogResult.Ok(model));
     }

@@ -1,7 +1,9 @@
 ﻿using EmpowerCRMv2.Data;
 using EmpowerCRMv2.Models;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace EmpowerCRMv2.Services
 {
@@ -20,11 +22,10 @@ namespace EmpowerCRMv2.Services
             _userRole = claimsPrincipal.FindFirst(ClaimTypes.Role)?.Value;
         }
 
-        public async Task AddOpportunityItemAsync(Opportunity item, int contactId)
+        public async Task AddOpportunityItemAsync(Opportunity item)
         {
             item.CreatedDate = DateTime.UtcNow;
             item.LastModifiedDate = DateTime.UtcNow;
-            item.ContactId = contactId;
             _context.Opportunities.Add(item);
             await _context.SaveChangesAsync();
         }
@@ -70,14 +71,17 @@ namespace EmpowerCRMv2.Services
             return await _context.Opportunities.Include(o => o.Contact).Include(o => o.Stage).Include(o => o.OpportunityProducts).ThenInclude(op => op.Product).FirstOrDefaultAsync(o => o.Id == id && o.Contact.Owner.Id == _userId);
         }
 
-        public async Task UpdateOpportunityItemAsync(Opportunity item, int id)
+        public async Task UpdateOpportunityItemAsync(Opportunity item)
         {
             Opportunity? dbItem;
             if (_userRole == "Administrator")
             {
-                await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == id);
+                dbItem = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == item.Id);
             }
-            dbItem = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == id && o.Contact.Owner.Id == _userId);
+            else
+            {
+                dbItem = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == item.Id && o.Contact.Owner.Id == _userId);
+            }
             if (dbItem != null)
             {
                 dbItem.Name = item.Name;
@@ -113,9 +117,21 @@ namespace EmpowerCRMv2.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<Product>> GetAllProductItemsAsync()
+        public async Task UpdateOpportunityProductItemAsync(OpportunityProduct item)
         {
-            return await _context.Products.ToListAsync();
+            OpportunityProduct? dbItem;
+
+            dbItem = await _context.OpportunityProducts
+                .FirstOrDefaultAsync(op => op.OpportunityId == item.OpportunityId && op.ProductId == item.ProductId);
+
+            if (dbItem != null)
+            {
+                dbItem.Quantity = item.Quantity;
+                dbItem.Price = item.Price;
+
+                await _context.SaveChangesAsync();
+            }
         }
+
     }
 }

@@ -1,0 +1,53 @@
+﻿@inject IProductService ProductService
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Name"
+                                  @bind-Value="model.Name" For="@(() => model.Name)" />
+                    <MudTextField Label="Manufacturer" Class="mt-3"
+                                  @bind-Value="model.Manufacturer" For="@(() => model.Manufacturer)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudButton OnClick="Cancel" Class="mx-1">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                               Color="Color.Primary">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private Product model = new Product();
+    [Parameter] public Product Product { get; set; }
+
+    override protected async Task OnParametersSetAsync()
+    {
+        if (Product is not null)
+        {
+            model.Id = Product.Id;
+            model.Name = Product.Name;
+            model.Manufacturer = Product.Manufacturer;
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async void OnValidSubmit(EditContext context)
+    {
+        if (model.Id == 0 && model is not null)
+        {
+            await ProductService.AddProductItemAsync(model);
+        }
+        else if (model?.Id != 0 && model is not null)
+        {
+            await ProductService.UpdateProductItemAsync(model);
+        }
+        MudDialog.Close(DialogResult.Ok(model));
+    }
+}

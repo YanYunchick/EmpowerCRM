@@ -178,7 +178,7 @@ else
 
     private async void OpenEditDialog()
     {
-        var parameters = new DialogParameters { ["model"] = selectedItem1 };
+        var parameters = new DialogParameters { ["contact"] = selectedItem1 };
 
         var dialog = await DialogService.ShowAsync<EditContactDialog>("Edit contact", parameters);
         var result = await dialog.Result;

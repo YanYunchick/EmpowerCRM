@@ -162,9 +162,9 @@ else
 
     private async void OpenCreateDialog()
     {
-        DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters { ["isAddOpportunitiesPage"] = true };
 
-        var dialog = await DialogService.ShowAsync<EditOpportunityDialog>("Create Opportunity", closeOnEscapeKey);
+        var dialog = await DialogService.ShowAsync<EditOpportunityDialog>("Create Opportunity", parameters);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
@@ -176,7 +176,7 @@ else
 
     private async void OpenEditDialog()
     {
-        var parameters = new DialogParameters { ["model"] = selectedItem1 };
+        var parameters = new DialogParameters { ["Opportunity"] = selectedItem1 };
 
         var dialog = await DialogService.ShowAsync<EditOpportunityDialog>("Edit Opportunity", parameters);
         var result = await dialog.Result;

@@ -6,7 +6,7 @@ namespace EmpowerCRMv2.Services
     {
         Task<List<UserTask>> GetAllUserTaskItemsAsync();
         Task AddUserTaskItemAsync(UserTask item);
-        Task UpdateUserTaskItemAsync(UserTask item, int id);
+        Task UpdateUserTaskItemAsync(UserTask item);
         Task DeleteUserTaskItemAsync(int id);
         Task<List<UserTaskPriority>> GetUserTaskPrioritiesAsync();
         Task<List<UserTaskStatus>> GetUserTaskStatusesAsync();

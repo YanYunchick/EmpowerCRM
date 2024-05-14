@@ -7,7 +7,7 @@ namespace EmpowerCRMv2.Services
         Task<List<Contact>> GetAllContactItemsAsync();
         Task<Contact?> GetContactItemByIdAsync(int id);
         Task AddContactItemAsync(Contact item);
-        Task UpdateContactItemAsync(Contact item, int id);
+        Task UpdateContactItemAsync(Contact item);
         Task DeleteContactItemAsync(int id);
     }
 }

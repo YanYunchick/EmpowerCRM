@@ -63,14 +63,17 @@ namespace EmpowerCRMv2.Services
             return await _context.Contacts.Include(c => c.Opportunities).ThenInclude(o => o.Stage).FirstOrDefaultAsync(c => c.Id == id && c.Owner.Id == _userId);
         }
 
-        public async Task UpdateContactItemAsync(Contact item, int id)
+        public async Task UpdateContactItemAsync(Contact item)
         {
             Contact? dbItem;
             if (_userRole == "Administrator")
             {
-                await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id);
+                dbItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == item.Id);
             }
-            dbItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id && c.Owner.Id == _userId);
+            else
+            {
+                dbItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == item.Id && c.Owner.Id == _userId);
+            }
             if (dbItem != null)
             {
                 dbItem.FirstName = item.FirstName;

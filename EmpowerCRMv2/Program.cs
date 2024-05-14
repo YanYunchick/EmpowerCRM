@@ -34,6 +34,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IOpportunityService, OpportunityService>();
 builder.Services.AddScoped<IUserTaskService, UserTaskService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)

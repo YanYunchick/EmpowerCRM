@@ -1,0 +1,79 @@
+﻿@inject IProductService ProductService
+@inject IOpportunityService OpportunityService
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardContent>
+                    <MudSelect T="int" @bind-Value="model.ProductId" Label="Product" AnchorOrigin="Origin.BottomCenter" Disabled="@(isEdit)">
+                        @foreach (Product product in products)
+                        {
+                            <MudSelectItem Value="@product.Id">@product.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudNumericField Format="0.##" @bind-Value="model.Quantity" Label="Quantity" Variant="Variant.Outlined" Min="1" Max="9999" />
+                    <MudNumericField Format="0.##" @bind-Value="model.Price" Label="Price" Variant="Variant.Outlined" Min="0" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudButton OnClick="Cancel" Class="mx-1">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                               Color="Color.Primary" Disabled="@(!products.Any())">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private OpportunityProduct model = new OpportunityProduct();
+    [Parameter] public OpportunityProduct OpportunityProduct { get; set; }
+    [Parameter] public Opportunity CurrentOpportunity { get; set; }
+    List<Product> products = new List<Product>();
+    private bool isEdit = false;
+    private int oldProductId;
+    override protected async Task OnParametersSetAsync()
+    {
+        var result = await ProductService.GetAllProductItemsAsync();
+        products = result.Except(CurrentOpportunity.Products ?? new List<Product>()).ToList();
+        if (OpportunityProduct is not null)
+        {
+            model.OpportunityId = OpportunityProduct.OpportunityId;
+            model.ProductId = OpportunityProduct.ProductId;
+            model.Quantity = OpportunityProduct.Quantity;
+            model.Price = OpportunityProduct.Price;
+            isEdit = true;
+            products.Add(OpportunityProduct.Product);
+        }
+        else
+        {
+            if (products.Any())
+            {
+                model.ProductId = products.FirstOrDefault()!.Id;
+            }
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async void OnValidSubmit(EditContext context)
+    {
+        if (model is not null)
+        {
+            if(!isEdit)
+            {
+                model.OpportunityId = CurrentOpportunity.Id;
+                await OpportunityService.AddOpportunityProductItemAsync(model);
+            }
+            else
+            {
+                Console.WriteLine(model.ProductId);
+                await OpportunityService.UpdateOpportunityProductItemAsync(model);
+            }
+        }
+        MudDialog.Close(DialogResult.Ok(model));
+    }
+}

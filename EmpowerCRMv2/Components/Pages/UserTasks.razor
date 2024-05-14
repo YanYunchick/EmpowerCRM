@@ -130,7 +130,7 @@
 
     private async void OpenEditDialog()
     {
-        var parameters = new DialogParameters { ["model"] = selectedUserTask };
+        var parameters = new DialogParameters { ["UserTask"] = selectedUserTask };
 
         var dialog = await DialogService.ShowAsync<EditUserTaskDialog>("Edit Task", parameters);
         var result = await dialog.Result;

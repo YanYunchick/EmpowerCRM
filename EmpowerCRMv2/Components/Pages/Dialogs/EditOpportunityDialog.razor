@@ -1,4 +1,5 @@
 ﻿@inject IOpportunityService OpportunityService
+@inject IContactService ContactService
 
 <MudDialog>
     <DialogContent>
@@ -8,12 +9,21 @@
                 <MudCardContent>
                     <MudTextField Label="Name"
                                   @bind-Value="model.Name" For="@(() => model.Name)" />
-                    <MudTextField Label="Amount" Class="mt-3"
-                                  @bind-Value="model.Amount" For="@(() => model.Amount)" />
+                    <MudNumericField Format="0.##" @bind-Value="model.Amount" Label="Amount" Variant="Variant.Outlined" Min="0" Max="999999" />
+                    @if(isAddOpportunitiesPage)
+                    {
+                        <MudSelect T="int" @bind-Value="model.ContactId" Label="Contact" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (Contact contact in contacts)
+                            {
+                                <MudSelectItem Value="@contact.Id">@contact.FirstName @contact.LastName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                    
                     <MudSelect T="int?" @bind-Value="model.StageId" Label="Stage" AnchorOrigin="Origin.BottomCenter">
                         @foreach(OpportunityStage stage in opportunityStages)
                         {
-                            <MudSelectItem Value="@stage.Id">@stage.Name</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@stage.Id">@stage.Name</MudSelectItem>
                         }
                     </MudSelect>
                     <MudDatePicker PickerVariant="PickerVariant.Inline" AnchorOrigin="Origin.BottomCenter" Label="Close Date" @bind-Date="@model.CloseDate"
@@ -32,9 +42,11 @@
 </MudDialog>
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
-    [Parameter] public Opportunity model { get; set; }
+    private Opportunity model = new Opportunity();
+    [Parameter] public Opportunity Opportunity { get; set; }
+    [Parameter] public bool isAddOpportunitiesPage { get; set; }
     List<OpportunityStage> opportunityStages = new List<OpportunityStage>();
+    List<Contact> contacts = new List<Contact>();
 
     //protected override async Task OnInitializedAsync()
     //{
@@ -43,11 +55,27 @@
 
     override protected async Task OnParametersSetAsync()
     {
-        if (model is null)
+        if (isAddOpportunitiesPage)
         {
-            model = new Opportunity();
+            contacts = await ContactService.GetAllContactItemsAsync();
+            if (contacts.Any())
+            {
+                model.ContactId = contacts.FirstOrDefault()!.Id;
+            }
+        }
+        if (Opportunity is not null)
+        {
+            model.Id = Opportunity.Id;
+            model.Name = Opportunity.Name;
+            model.StageId = Opportunity.StageId;
+            model.Amount = Opportunity.Amount;
+            model.CloseDate = Opportunity.CloseDate;
+            model.LastModifiedDate = Opportunity.LastModifiedDate;
+            model.CreatedDate = Opportunity.CreatedDate;
+            model.ContactId = Opportunity.ContactId;
         }
         opportunityStages = await OpportunityService.GetOpportunityStagesAsync();
+        StateHasChanged();
     }
 
     void Cancel() => MudDialog.Cancel();
@@ -56,11 +84,11 @@
     {
         if (model.Id == 0 && model is not null)
         {
-            await OpportunityService.AddOpportunityItemAsync(model, 1);
+            await OpportunityService.AddOpportunityItemAsync(model);
         }
-        else if (model?.Id != 0 && model is not null)
+        else if (model!.Id != 0 && model is not null)
         {
-            await OpportunityService.UpdateOpportunityItemAsync(model, model.Id);
+            await OpportunityService.UpdateOpportunityItemAsync(model);
         }
         MudDialog.Close(DialogResult.Ok(model));
     }

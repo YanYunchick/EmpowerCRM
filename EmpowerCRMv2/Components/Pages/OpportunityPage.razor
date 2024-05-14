@@ -83,6 +83,9 @@ else
                                     <MudIconButton OnClick="@(() => DeleteOpportunityProductItem(context.Item))" 
                                                    Icon="@Icons.Material.Filled.Delete" aria-label="delete">
                                     </MudIconButton>
+                                    <MudIconButton OnClick="@(() => OpenEditProductDialog(context.Item))"
+                                                   Icon="@Icons.Material.Filled.Edit" aria-label="edit">
+                                    </MudIconButton>
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
@@ -162,7 +165,7 @@ else
         if (currentOpportunity.StageId != stageId)
         {
             currentOpportunity.StageId = stageId;
-            await OpportunityService.UpdateOpportunityItemAsync(currentOpportunity, currentOpportunity.Id);
+            await OpportunityService.UpdateOpportunityItemAsync(currentOpportunity);
             currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
         }
 
@@ -172,12 +175,26 @@ else
     {
         var parameters = new DialogParameters { ["CurrentOpportunity"] = currentOpportunity };
 
-        var dialog = await DialogService.ShowAsync<AddOpportunityProductDialog>("Add Product", parameters);
+        var dialog = await DialogService.ShowAsync<EditOpportunityProductDialog>("Add Product", parameters);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
             currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
             Snackbar.Add($"The product has been added successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async void OpenEditProductDialog(OpportunityProduct product)
+    {
+        var parameters = new DialogParameters { ["CurrentOpportunity"] = currentOpportunity, ["OpportunityProduct"] = product };
+
+        var dialog = await DialogService.ShowAsync<EditOpportunityProductDialog>("Edit Product", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            currentOpportunity = await OpportunityService.GetOpportunityItemByIdAsync((int)Id);
+            Snackbar.Add($"The product has been updated successfully", Severity.Success);
             StateHasChanged();
         }
     }

@@ -1,0 +1,91 @@
+﻿@page "/products"
+@rendermode InteractiveServer
+@inject IProductService ProductService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+<MudDataGrid T="Product" Items="@productItems" QuickFilter="@_quickFilter" >
+    <ToolBarContent>
+        <div class="d-block">
+            <MudText Typo="Typo.h6">Products</MudText>
+            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="OpenCreateProductDialog">Add</MudButton>
+        </div>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Name" SortBy="@_sortBy" />
+        <PropertyColumn Property="x => x.Manufacturer" Title="Manufacturer"/>
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudStack Row>
+                    <MudIconButton OnClick="@(() => DeleteProductItem(context.Item))"
+                                   Icon="@Icons.Material.Filled.Delete" aria-label="delete">
+                    </MudIconButton>
+                    <MudIconButton OnClick="@(() => OpenEditProductDialog(context.Item))"
+                                   Icon="@Icons.Material.Filled.Edit" aria-label="edit">
+                    </MudIconButton>
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Product" />
+    </PagerContent>
+</MudDataGrid>
+@code {
+    private List<Product> productItems = new List<Product>();
+    private string _searchString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productItems = await ProductService.GetAllProductItemsAsync();
+    }
+
+    private Func<Product, object> _sortBy => x => x.Name;
+    private Func<Product, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+
+    async Task DeleteProductItem(Product product)
+    {
+        await ProductService.DeleteProductItemAsync(product.Id);
+        productItems = await ProductService.GetAllProductItemsAsync();
+    }
+
+    private async void OpenCreateProductDialog()
+    {
+
+        var dialog = await DialogService.ShowAsync<EditProductDialog>("Create Product");
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            productItems = await ProductService.GetAllProductItemsAsync();
+            Snackbar.Add($"New product has been added successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async void OpenEditProductDialog(Product product)
+    {
+        var parameters = new DialogParameters { ["Product"] = product };
+
+        var dialog = await DialogService.ShowAsync<EditProductDialog>("Edit Product", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            productItems = await ProductService.GetAllProductItemsAsync();
+            Snackbar.Add($"The product has been updated successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+}

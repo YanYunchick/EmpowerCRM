@@ -66,14 +66,17 @@ namespace EmpowerCRMv2.Services
                                                 .Include(ut => ut.Opportunity).ToListAsync();
         }
 
-        public async Task UpdateUserTaskItemAsync(UserTask item, int id)
+        public async Task UpdateUserTaskItemAsync(UserTask item)
         {
             UserTask? dbItem;
             if (_userRole == "Administrator")
             {
-                await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == id);
+                dbItem = await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == item.Id);
             }
-            dbItem = await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == id && ut.Owner!.Id == _userId);
+            else
+            {
+                dbItem = await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == item.Id && ut.Owner!.Id == _userId);
+            }
             if (dbItem != null)
             {
                 dbItem.Name = item.Name;
