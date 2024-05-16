@@ -3,7 +3,9 @@
 @inject IOpportunityService OpportunityService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IPdfService PdfService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
 <MudStack Row="true" Spacing="0">
@@ -19,17 +21,22 @@
                 <MudSpacer />
                 <MudButton Color="Color.Error" @onclick="@(() => ConfirmDelete())">Delete</MudButton>
                 <MudButton Color="Color.Primary" OnClick="OpenEditDialog">Edit</MudButton>
+                <MudButton Color="Color.Primary" OnClick="GeneratePdf">Generate Invoice</MudButton>
             </MudStack>
             <MudDivider DividerType="DividerType.FullWidth" Class="my-3" Light />
 
             <MudStack Row="true" Spacing="3">
+                <MudPaper>
+                    <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Contact</MudText>
+                    <MudLink Class="mx-1" Href="@($"/contact/{currentOpportunity.ContactId}")">@currentOpportunity.Contact.FirstName @currentOpportunity.Contact.LastName</MudLink>
+                </MudPaper>
                 <MudPaper>
                     <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Amount</MudText>
                     <MudText Class="mx-3">@currentOpportunity.Amount</MudText>
                 </MudPaper>
                 <MudPaper>
                     <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Stage</MudText>
-                    <MudText Class="mx-3">@currentOpportunity.Stage.Name</MudText>
+                    <MudText Class="mx-3">@currentOpportunity.Stage?.Name</MudText>
                 </MudPaper>
                 <MudPaper>
                     <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 12px;">Close Date</MudText>
@@ -133,8 +140,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
-        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+        //CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
+        //CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
     }
 
     protected override async Task OnParametersSetAsync()
@@ -230,7 +237,7 @@ else
 
     private async void OpenEditDialog()
     {
-        var parameters = new DialogParameters { ["model"] = currentOpportunity };
+        var parameters = new DialogParameters { ["Opportunity"] = currentOpportunity };
 
         var dialog = await DialogService.ShowAsync<EditOpportunityDialog>("Edit Opportunity", parameters);
         var result = await dialog.Result;
@@ -254,5 +261,13 @@ else
             await DeleteOpportunityItem();
             StateHasChanged();
         }
+    }
+
+    private async Task GeneratePdf()
+    {
+        var pdfBytes = PdfService.GenerateInvoicePdf(currentOpportunity);
+
+        var fileName = $"invoice.pdf";
+        await JSRuntime.InvokeVoidAsync("JS.openBase64PdfInNewTab", pdfBytes);
     }
 }

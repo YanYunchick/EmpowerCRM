@@ -9,7 +9,7 @@
                 <MudCardContent>
                     <MudTextField Label="Name"
                                   @bind-Value="model.Name" For="@(() => model.Name)" />
-                    <MudNumericField Format="0.##" @bind-Value="model.Amount" Label="Amount" Variant="Variant.Outlined" Min="0" Max="999999" />
+                    <MudNumericField @bind-Value="model.Amount" Label="Amount" Variant="Variant.Outlined" Format="F2" Min="0" Max="999999" />
                     @if(isAddOpportunitiesPage)
                     {
                         <MudSelect T="int" @bind-Value="model.ContactId" Label="Contact" AnchorOrigin="Origin.BottomCenter">
@@ -44,6 +44,7 @@
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     private Opportunity model = new Opportunity();
     [Parameter] public Opportunity Opportunity { get; set; }
+    [Parameter] public int ContactId { get; set; }
     [Parameter] public bool isAddOpportunitiesPage { get; set; }
     List<OpportunityStage> opportunityStages = new List<OpportunityStage>();
     List<Contact> contacts = new List<Contact>();
@@ -62,6 +63,10 @@
             {
                 model.ContactId = contacts.FirstOrDefault()!.Id;
             }
+        } 
+        if(ContactId != 0)
+        {
+            model.ContactId = ContactId;
         }
         if (Opportunity is not null)
         {

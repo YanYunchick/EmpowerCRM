@@ -1,0 +1,61 @@
+﻿@using EmpowerCRMv2.Data
+@using Microsoft.AspNetCore.Identity
+@inject IContactService ContactService
+@inject IUserService UserService
+@attribute [Authorize(Roles = "Administrator")]
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardContent>
+
+                    <MudSelect T="string" @bind-Value="role" Label="Owner" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (IdentityRole role in roles)
+                        {
+                            <MudSelectItem T="string" Value="@role.Name">@role.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudButton OnClick="Cancel" Class="mx-1">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary" OnClick="OnSubmit">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private ApplicationUser model = new ApplicationUser();
+    private string? role { get; set; }
+    [Parameter] public ApplicationUser User { get; set; }
+    List<IdentityRole> roles = new List<IdentityRole>();
+
+    override protected async Task OnParametersSetAsync()
+    {
+        roles = await UserService.GetAllRolesAsync();
+        var userRoles = await UserService.GetUserRoleAsync(User.Id);
+        role = userRoles.ToList().FirstOrDefault();
+        StateHasChanged();
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async void OnSubmit()
+    {
+        if (role is not null)
+        {
+            await UserService.EditUserRoleAsync(User.Id, role);
+        }
+        MudDialog.Close(DialogResult.Ok(model));
+    }
+    private async void OnValidSubmit(EditContext e)
+    {
+    }
+}

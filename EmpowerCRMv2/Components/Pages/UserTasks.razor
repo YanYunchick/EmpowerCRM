@@ -68,7 +68,7 @@
                     </MudPaper>
                     <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
                         <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Assigned To</MudText>
-                        <MudText Class="mx-3">@selectedUserTask.Owner?.UserName</MudText>
+                        <MudText Class="mx-3">@selectedUserTask.Opportunity.Contact.Owner!.UserName</MudText>
                     </MudPaper>
                     <MudPaper Class="mx-10 my-3" Width="40%" Square="true" Outlined="true">
                         <MudText Class="mx-2" Color="Color.Primary" Style="font-size: 16px;">Last Modified At</MudText>

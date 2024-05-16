@@ -7,14 +7,16 @@ namespace EmpowerCRMv2.Models
     {
         public int Id { get; set; }
         [MaxLength(255)]
-        public string? FirstName { get; set; }
+        [Required]
+        public string FirstName { get; set; }
         [MaxLength(255)]
-        public string? LastName { get; set; }
-
+        [Required]
+        public string LastName { get; set; }
         [EmailAddress]
         [MaxLength(255)]
         [Required]
         public string Email { get; set; }
+        [MaxLength(255)]
         public string? Phone { get; set; }
         [MaxLength(255)]
         public string? Address { get; set; }

@@ -2,6 +2,7 @@
 using EmpowerCRMv2.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using static MudBlazor.CategoryTypes;
 
 namespace EmpowerCRMv2.Services
 {
@@ -36,7 +37,7 @@ namespace EmpowerCRMv2.Services
             }
             else
             {
-                contactItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id && c.Owner.Id == _userId);
+                contactItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id && c.Owner!.Id == _userId);
             }
             if (contactItem != null)
             {
@@ -58,9 +59,9 @@ namespace EmpowerCRMv2.Services
         {
             if(_userRole == "Administrator")
             {
-                return await _context.Contacts.Include(c => c.Opportunities).ThenInclude(o => o.Stage).FirstOrDefaultAsync(c => c.Id == id);
+                return await _context.Contacts.Include(c => c.Owner).Include(c => c.Opportunities).ThenInclude(o => o.Stage).FirstOrDefaultAsync(c => c.Id == id);
             }
-            return await _context.Contacts.Include(c => c.Opportunities).ThenInclude(o => o.Stage).FirstOrDefaultAsync(c => c.Id == id && c.Owner.Id == _userId);
+            return await _context.Contacts.Include(c => c.Owner).Include(c => c.Opportunities).ThenInclude(o => o.Stage).FirstOrDefaultAsync(c => c.Id == id && c.Owner.Id == _userId);
         }
 
         public async Task UpdateContactItemAsync(Contact item)
@@ -72,7 +73,7 @@ namespace EmpowerCRMv2.Services
             }
             else
             {
-                dbItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == item.Id && c.Owner.Id == _userId);
+                dbItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == item.Id && c.Owner!.Id == _userId);
             }
             if (dbItem != null)
             {
@@ -84,6 +85,20 @@ namespace EmpowerCRMv2.Services
                 dbItem.Company = item.Company;
 
                 await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task ChangeContactOwnerAsync(int contactId, string newOwnerId)
+        {
+            Contact? dbItem;
+            if (_userRole == "Administrator")
+            {
+                dbItem = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == contactId);
+                if (dbItem != null)
+                {
+                    dbItem.OwnerId = newOwnerId;
+                    await _context.SaveChangesAsync();
+                }
             }
         }
     }

@@ -21,25 +21,32 @@
 
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="contacts">
-                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Contacts
+                    <span class="bi bi-people-fill" aria-hidden="true"></span> Contacts
                 </NavLink>
             </div>
 
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="opportunities">
-                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Opportunities
+                    <span class="bi bi-lightbulb-fill" aria-hidden="true"></span> Opportunities
                 </NavLink>
             </div>
 
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="tasks">
-                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Tasks
+                    <span class="bi bi-check2-square" aria-hidden="true"></span> Tasks
                 </NavLink>
             </div>
 
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="products">
-                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Products
+                    <span class="bi bi-box-seam" aria-hidden="true"></span> Products
+                </NavLink>
+            </div>
+        </AuthorizeView>
+        <AuthorizeView Roles="Administrator">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="users">
+                    <span class="bi bi-person-lines-fill" aria-hidden="true"></span> Users
                 </NavLink>
             </div>
         </AuthorizeView>

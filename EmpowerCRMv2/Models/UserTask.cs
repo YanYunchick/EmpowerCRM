@@ -22,7 +22,5 @@ namespace EmpowerCRMv2.Models
         public UserTaskPriority? Priority { get; set; }
         public int OpportunityId { get; set; }
         public Opportunity Opportunity { get; set; }
-        public string? OwnerId { get; set; }
-        public ApplicationUser? Owner { get; set; }
     }
 }

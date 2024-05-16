@@ -1,0 +1,60 @@
+﻿@using EmpowerCRMv2.Data
+@using Microsoft.AspNetCore.Identity
+@inject IContactService ContactService
+@inject IUserService UserService
+@attribute [Authorize(Roles = "Administrator")]
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardContent>
+
+                    <MudSelect T="string" @bind-Value="model.OwnerId" Label="Owner" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (ApplicationUser user in users)
+                        {
+                            <MudSelectItem T="string" Value="@user.Id">@user.UserName</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudButton OnClick="Cancel" Class="mx-1">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary" OnClick="OnSubmit">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private Contact model = new Contact();
+    [Parameter] public Contact Contact { get; set; }
+    List<ApplicationUser> users = new List<ApplicationUser>();
+
+    override protected async Task OnParametersSetAsync()
+    {
+        users = await UserService.GetAllUsersAsync();
+        model.Id = Contact.Id;
+        model.OwnerId = Contact.OwnerId;
+        StateHasChanged();
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async void OnSubmit()
+    {   
+        if (model!.Id != 0 && model is not null)
+        {
+            await ContactService.ChangeContactOwnerAsync(model.Id, model.OwnerId);
+        }
+        MudDialog.Close(DialogResult.Ok(model));
+    }
+    private async void OnValidSubmit(EditContext e)
+    {
+    }
+}

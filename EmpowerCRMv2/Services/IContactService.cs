@@ -9,5 +9,6 @@ namespace EmpowerCRMv2.Services
         Task AddContactItemAsync(Contact item);
         Task UpdateContactItemAsync(Contact item);
         Task DeleteContactItemAsync(int id);
+        Task ChangeContactOwnerAsync(int contactId, string newOwnerId);
     }
 }

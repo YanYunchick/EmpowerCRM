@@ -24,7 +24,6 @@ namespace EmpowerCRMv2.Services
         {
             item.CreatedDate = DateTime.UtcNow;
             item.LastModifiedDate = DateTime.UtcNow;
-            item.OwnerId = _userId;
             _context.UserTasks.Add(item);
             await _context.SaveChangesAsync();
         }
@@ -38,7 +37,7 @@ namespace EmpowerCRMv2.Services
             }
             else
             {
-                userTaskItem = await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == id && ut.Owner!.Id == _userId);
+                userTaskItem = await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == id && ut.Opportunity.Contact.Owner!.Id == _userId);
             }
             if (userTaskItem != null)
             {
@@ -51,19 +50,20 @@ namespace EmpowerCRMv2.Services
         {
             if (_userRole == "Administrator")
             {
-                return await _context.UserTasks.Include(ut => ut.Owner)
+                return await _context.UserTasks.Include(ut => ut.Status)
+                                                .Include(ut => ut.Priority)
+                                                .Include(ut => ut.Opportunity)
+                                                .ThenInclude(o => o.Contact)
+                                                .ThenInclude(c => c.Owner)
+                                                .OrderByDescending(ut => ut.DueDate).ToListAsync();
+            }
+            return await _context.UserTasks.Where(ut => ut.Opportunity.Contact.Owner!.Id == _userId)
                                                 .Include(ut => ut.Status)
                                                 .Include(ut => ut.Priority)
                                                 .Include(ut => ut.Opportunity)
-                                                .OrderByDescending(ut => ut.DueDate)
-                                                .ToListAsync();
-            }
-            return await _context.UserTasks.Where(ut => ut.Owner!.Id == _userId)
-                                                .Include(ut => ut.Owner)
-                                                .Include(ut => ut.Status)
-                                                .Include(ut => ut.Priority)
-                                                .OrderByDescending(ut => ut.DueDate)
-                                                .Include(ut => ut.Opportunity).ToListAsync();
+                                                .ThenInclude(o => o.Contact)
+                                                .ThenInclude(c => c.Owner)
+                                                .OrderByDescending(ut => ut.DueDate).ToListAsync();
         }
 
         public async Task UpdateUserTaskItemAsync(UserTask item)
@@ -75,7 +75,7 @@ namespace EmpowerCRMv2.Services
             }
             else
             {
-                dbItem = await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == item.Id && ut.Owner!.Id == _userId);
+                dbItem = await _context.UserTasks.FirstOrDefaultAsync(ut => ut.Id == item.Id && ut.Opportunity.Contact.Owner!.Id == _userId);
             }
             if (dbItem != null)
             {
@@ -86,7 +86,6 @@ namespace EmpowerCRMv2.Services
                 dbItem.StatusId = item.StatusId;
                 dbItem.PriorityId = item.PriorityId;
                 dbItem.OpportunityId = item.OpportunityId;
-                dbItem.OwnerId = item.OwnerId;
                 dbItem.LastModifiedDate = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
