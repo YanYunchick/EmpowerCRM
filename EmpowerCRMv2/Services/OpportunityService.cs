@@ -68,7 +68,12 @@ namespace EmpowerCRMv2.Services
                                                    .ThenInclude(op => op.Product)
                                                    .FirstOrDefaultAsync(o => o.Id == id);
             }
-            return await _context.Opportunities.Include(o => o.Contact).Include(o => o.Stage).Include(o => o.OpportunityProducts).ThenInclude(op => op.Product).FirstOrDefaultAsync(o => o.Id == id && o.Contact.Owner.Id == _userId);
+            return await _context.Opportunities.Include(o => o.Contact)
+                                                .Include(o => o.Stage)
+                                                .Include(o => o.UserTasks)
+                                                .Include(o => o.OpportunityProducts)
+                                                .ThenInclude(op => op.Product)
+                                                .FirstOrDefaultAsync(o => o.Id == id && o.Contact.Owner.Id == _userId);
         }
 
         public async Task UpdateOpportunityItemAsync(Opportunity item)

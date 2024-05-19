@@ -75,9 +75,7 @@ else
                 <MudTd DataLabel="Phone">@context.Phone</MudTd>
                 <MudTd DataLabel="Address">@context.Address</MudTd>
                 <MudTd DataLabel="Company">@context.Company</MudTd>
-                <MudTd DataLabel="Owner">
-                    <MudLink Href="@($"/Account/Manage")">@context.Owner.Email</MudLink>
-                </MudTd>    
+                <MudTd DataLabel="Owner">@context.Owner?.UserName</MudTd>    
         </RowTemplate>
         <PagerContent>
             <MudTablePager PageSizeOptions="@pageSizes"/>

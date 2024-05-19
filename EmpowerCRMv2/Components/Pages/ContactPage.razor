@@ -60,7 +60,7 @@
 {
     <MudGrid Class="my-4">
         <MudItem xs="6" md="8">
-            <MudPaper>
+            <MudPaper Height="400px" Class="overflow-scroll">
                 <MudStack Row="true" Spacing="0">
                     <MudIcon Icon="@Icons.Material.Filled.BusinessCenter" Color="Color.Primary" Size="Size.Medium" Class="pt=3"></MudIcon>
                     <MudText Typo="Typo.h6">Opportunities</MudText>
@@ -75,8 +75,8 @@
                             <MudDivider DividerType="DividerType.FullWidth" Class="my-1" Light />
                             <MudPaper Class="ma-1" Outlined="false" Elevation="0">
                                 <MudText Typo="Typo.h5" Color="Color.Primary">Amount</MudText>
-                                <MudStack Row="true">  
-                                    <MudText Typo="Typo.h4" Color="Color.Success"><b>$@opp.Amount</b></MudText>
+                                <MudStack Row="true">
+                                    <MudText Typo="Typo.h4" Color="Color.Success"><b>$@(String.Format("{0:0.00}", @opp.Amount))</b></MudText>
                                 </MudStack>
                             </MudPaper>
                             <MudDivider DividerType="DividerType.FullWidth" Class="my-1" Light />
@@ -91,8 +91,10 @@
         </MudItem>
         <MudItem xs="6" md="4">
             <MudPaper>
+                <MudText Class="ma-1" Typo="Typo.h6">Amounts of Opportunitities</MudText>
                 @if(currentContact.Opportunities.Any())
                 {
+
                     <MudChart ChartType="ChartType.Donut" Width="300px" Height="300px" InputData="@opportunityAmounts" InputLabels="@opportunityNames">
                         <CustomGraphics>
                             <text class="donut-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">Total</text>

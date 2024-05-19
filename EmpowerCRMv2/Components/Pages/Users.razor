@@ -4,6 +4,7 @@
 @inject IUserService UserService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationState
 @attribute [Authorize(Roles ="Administrator")]
 
 <MudDataGrid T="ApplicationUser" Items="@users" QuickFilter="@_quickFilter">
@@ -18,11 +19,12 @@
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.UserName" Title="Name" SortBy="@_sortBy" />
+        <PropertyColumn Property="x => x.PhoneNumber" Title="Phone" />
         <TemplateColumn CellClass="d-flex justify-end">
             <CellTemplate>
                 <MudStack Row>
                     <MudIconButton OnClick="@(() => DeleteUser(context.Item))"
-                                   Icon="@Icons.Material.Filled.Delete" aria-label="delete">
+                                   Icon="@Icons.Material.Filled.Delete" aria-label="delete" Disabled="@(context.Item.UserName == userName)">
                     </MudIconButton>
                     <MudIconButton OnClick="@(() => OpenChangeRoleDialog(context.Item))"
                                    Icon="@Icons.Material.Filled.People" aria-label="edit">
@@ -35,16 +37,20 @@
         </TemplateColumn>
     </Columns>
     <PagerContent>
-        <MudDataGridPager T="Product" />
+        <MudDataGridPager T="ApplicationUser" />
     </PagerContent>
 </MudDataGrid>
 @code {
     private List<ApplicationUser> users = new List<ApplicationUser>();
+    private string? userName;
     private string _searchString;
 
     protected override async Task OnInitializedAsync()
     {
         users = await UserService.GetAllUsersAsync();
+        var authstate = await AuthenticationState.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        userName = user.Identity?.Name;
     }
 
     private Func<ApplicationUser, object> _sortBy => x => x.UserName;
